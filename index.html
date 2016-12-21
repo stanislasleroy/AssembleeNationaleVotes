@@ -37,13 +37,13 @@
 
         var noms_parti = {};
         var noms_acteur = {};
-        var votantAjoute = {};
-        var lienAjoute = {};
+        var votant_ajoute = {};
+        var lien_ajoute = {};
 
         // Pour l'affichage classique :
-        var nbLinkMin = 15;
+        var nb_lien_min = 15;
         // Pour le debug :
-        // var nbLinkMin = 25;
+        // var nb_lien_min = 25;
 
         var color = d3.scaleOrdinal(d3.schemeCategory10);
         // var color = d3.scaleOrdinal(d3.schemeCategory20);
@@ -92,6 +92,7 @@
             var scrutins = graph.scrutins.scrutin;
 
             var index = 0;
+
             for (var scrutin of scrutins) {
 
                 if (scrutin.dateScrutin.startsWith("2015")) {
@@ -114,12 +115,12 @@
                                             if (!personContre[id1]) {
                                                 personContre[id1] = id1;
 
-                                                if (!votantAjoute[id1]) {
+                                                if (!votant_ajoute[id1]) {
                                                     nodes.push({
                                                         "id": id1,
                                                         "group": groupeArray[i].organeRef
                                                     });
-                                                    votantAjoute[id1] = id1;
+                                                    votant_ajoute[id1] = id1;
                                                 }
                                             }
                                         }
@@ -129,12 +130,12 @@
                                         if (!personContre[id2]) {
                                             personContre[id2] = id2;
 
-                                            if (!votantAjoute[id2]) {
+                                            if (!votant_ajoute[id2]) {
                                                 nodes.push({
                                                     "id": id2,
                                                     "group": groupeArray[i].organeRef
                                                 });
-                                                votantAjoute[id2] = id2;
+                                                votant_ajoute[id2] = id2;
                                             }
                                         }
                                     }
@@ -148,12 +149,12 @@
                                             if (!personPour[id3]) {
                                                 personPour[id3] = id3;
 
-                                                if (!votantAjoute[id3]) {
+                                                if (!votant_ajoute[id3]) {
                                                     nodes.push({
                                                         "id": id3,
                                                         "group": groupeArray[i].organeRef
                                                     });
-                                                    votantAjoute[id3] = id3;
+                                                    votant_ajoute[id3] = id3;
                                                 }
                                             }
                                         }
@@ -163,12 +164,12 @@
                                         if (!personPour[id4]) {
                                             personPour[id4] = id4;
 
-                                            if (!votantAjoute[id4]) {
+                                            if (!votant_ajoute[id4]) {
                                                 nodes.push({
                                                     "id": id4,
                                                     "group": groupeArray[i].organeRef
                                                 });
-                                                votantAjoute[id4] = id4;
+                                                votant_ajoute[id4] = id4;
                                             }
                                         }
                                     }
@@ -178,8 +179,6 @@
                     }
 
                     // console.log("Nombre de votants Pour : " + Object.keys(personPour).length);
-                    var size = Object.keys(personPour).length;
-
                     for (var i = 0, keys_i = Object.keys(personPour), ii = keys_i.length; i < ii; i++) {
 
                         for (var j = i + 1, keys_j = Object.keys(personPour), jj = keys_j.length; j < jj; j++) {
@@ -188,9 +187,9 @@
 
                             // console.log(JSON.stringify(links));
 
-                            if (!(couple in lienAjoute)) {
+                            if (!(couple in lien_ajoute)) {
 
-                                lienAjoute[couple] = couple;
+                                lien_ajoute[couple] = couple;
 
                                 links[couple] = {};
                                 links[couple].source = personPour[keys_i[i]];
@@ -211,9 +210,9 @@
 
                             // console.log(JSON.stringify(links)str);
 
-                            if (!(couple in lienAjoute)) {
+                            if (!(couple in lien_ajoute)) {
 
-                                lienAjoute[couple] = couple;
+                                lien_ajoute[couple] = couple;
 
                                 links[couple] = {};
                                 links[couple].source = personContre[keys_i[i]];
@@ -238,8 +237,8 @@
 
             for (var key in links) {
 
-                // Réduction du nombre de noeuds : valeur de référence = nbLinkMin
-                if (links[key].value >= nbLinkMin) {
+                // Réduction du nombre de noeuds : valeur de référence = nb_lien_min
+                if (links[key].value >= nb_lien_min) {
                     resultLinks.push({
                         "source": links[key].source,
                         "target": links[key].target,
@@ -249,16 +248,12 @@
             }
 
             // console.log(JSON.stringify(resultLinks));
-            //console.log(JSON.stringify(nodes));
-            //console.log(Object.keys(nodes).length);
-
-            var linksReduced = [];
+            // console.log(JSON.stringify(nodes));
+            // console.log(Object.keys(nodes).length);
 
             console.log("Nombre de nodes : " + nodes.length);
             console.log("Nombre de liens avant réduction : " + Object.keys(links).length);
             console.log("Nombre de liens après réduction : " + resultLinks.length);
-
-            // console.log(JSON.stringify(linksReduced));
 
             var link = svg.append("g")
                 .attr("class", "links")
