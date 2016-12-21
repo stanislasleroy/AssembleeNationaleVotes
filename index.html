@@ -108,68 +108,74 @@
                             for (var i = 0; i < groupeArray.length; i++) {
 
                                 if (groupeArray[i].vote.decompteNominatif.contres != undefined) {
+
+                                    // Si les votants sont présentés sous la forme d'un tableau de votants
                                     if (Array.isArray(groupeArray[i].vote.decompteNominatif.contres.votant)) {
                                         for (var j = 0; j < groupeArray[i].vote.decompteNominatif.contres.votant.length; j++) {
-                                            var id1 = groupeArray[i].vote.decompteNominatif.contres.votant[j].acteurRef;
+                                            var id = groupeArray[i].vote.decompteNominatif.contres.votant[j].acteurRef;
 
-                                            if (!personContre[id1]) {
-                                                personContre[id1] = id1;
+                                            if (!personContre[id]) {
+                                                personContre[id] = id;
 
-                                                if (!votant_ajoute[id1]) {
+                                                if (!votant_ajoute[id]) {
                                                     nodes.push({
-                                                        "id": id1,
+                                                        "id": id,
                                                         "group": groupeArray[i].organeRef
                                                     });
-                                                    votant_ajoute[id1] = id1;
+                                                    votant_ajoute[id] = id;
                                                 }
                                             }
                                         }
+                                        // Votant unique
                                     } else {
-                                        var id2 = groupeArray[i].vote.decompteNominatif.contres.votant.acteurRef;
+                                        var id = groupeArray[i].vote.decompteNominatif.contres.votant.acteurRef;
 
-                                        if (!personContre[id2]) {
-                                            personContre[id2] = id2;
+                                        if (!personContre[id]) {
+                                            personContre[id] = id;
 
-                                            if (!votant_ajoute[id2]) {
+                                            if (!votant_ajoute[id]) {
                                                 nodes.push({
-                                                    "id": id2,
+                                                    "id": id,
                                                     "group": groupeArray[i].organeRef
                                                 });
-                                                votant_ajoute[id2] = id2;
+                                                votant_ajoute[id] = id;
                                             }
                                         }
                                     }
                                 }
 
                                 if (groupeArray[i].vote.decompteNominatif.pours != undefined) {
+
+                                    // Si les votants sont présentés sous la forme d'un tableau de votants
                                     if (Array.isArray(groupeArray[i].vote.decompteNominatif.pours.votant)) {
                                         for (var j = 0; j < groupeArray[i].vote.decompteNominatif.pours.votant.length; j++) {
-                                            var id3 = groupeArray[i].vote.decompteNominatif.pours.votant[j].acteurRef;
+                                            var id = groupeArray[i].vote.decompteNominatif.pours.votant[j].acteurRef;
 
-                                            if (!personPour[id3]) {
-                                                personPour[id3] = id3;
+                                            if (!personPour[id]) {
+                                                personPour[id] = id;
 
-                                                if (!votant_ajoute[id3]) {
+                                                if (!votant_ajoute[id]) {
                                                     nodes.push({
-                                                        "id": id3,
+                                                        "id": id,
                                                         "group": groupeArray[i].organeRef
                                                     });
-                                                    votant_ajoute[id3] = id3;
+                                                    votant_ajoute[id] = id;
                                                 }
                                             }
                                         }
+                                        // Votant unique
                                     } else {
-                                        var id4 = groupeArray[i].vote.decompteNominatif.pours.votant.acteurRef;
+                                        var id = groupeArray[i].vote.decompteNominatif.pours.votant.acteurRef;
 
-                                        if (!personPour[id4]) {
-                                            personPour[id4] = id4;
+                                        if (!personPour[id]) {
+                                            personPour[id] = id;
 
-                                            if (!votant_ajoute[id4]) {
+                                            if (!votant_ajoute[id]) {
                                                 nodes.push({
-                                                    "id": id4,
+                                                    "id": id,
                                                     "group": groupeArray[i].organeRef
                                                 });
-                                                votant_ajoute[id4] = id4;
+                                                votant_ajoute[id] = id;
                                             }
                                         }
                                     }
