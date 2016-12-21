@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8">
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="http://d3js.org/queue.v1.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <meta charset="utf-8">
+    <style>
+        .links line {
+            stroke: #999;
+            stroke-opacity: 0.6;
+        }
+        
+        .nodes circle {
+            stroke: #fff;
+            stroke-width: 1.5px;
+        }
+    </style>
+    <svg width="1300" height="600"></svg>
+    <script>
+        var svg = d3.select("svg"),
+            width = +svg.attr("width"),
+            height = +svg.attr("height");
+
+        var noms_parti = {};
+        var noms_acteur = {};
+        var votantAjoute = {};
+        var lienAjoute = {};
+
+        // Pour l'affichage classique :
+        var nbLinkMin = 15;
+        // Pour le debug :
+        // var nbLinkMin = 25;
+
+        var color = d3.scaleOrdinal(d3.schemeCategory10);
+        // var color = d3.scaleOrdinal(d3.schemeCategory20);
+        // var color = d3.scaleOrdinal(d3.schemeCategory20a);
+        // var color = d3.scaleOrdinal(d3.schemeCategory20c);
+
+        var simulation = d3.forceSimulation()
+            .force("link", d3.forceLink().id(function(d) {
+                return d.id
+            }))
+            .force("charge", d3.forceManyBody().strength(-5))
+            .force("center", d3.forceCenter(width / 2, height / 2));
+
+        /*
+         * Récupération des députés
+         */
+
+        d3.json("acteurs_simple2.json", function(error, input) {
+
+            if (error)
+                throw error
+
+            for (i = 0; i < input.export.organes.organe.length; i++) {
+                var organe = input.export.organes.organe[i];
+                noms_parti[organe.uid] = organe.libelle
+            }
+
+            for (i = 0; i < input.export.acteurs.acteur.length; i++) {
+                var acteur = input.export.acteurs.acteur[i];
+                var nomPrenom = acteur.etatCivil.ident.prenom + " " + acteur.etatCivil.ident.nom;
+                noms_acteur[acteur.uid["#text"]] = nomPrenom;
+            }
+        });
+
+        /*
+         * Parcours des scrutins
+         */
+        d3.json("scrutins.json", function(error, graph) {
+
+            if (error)
+                throw error
+
+            var nodes = [];
+            var links = [];
+
+            var scrutins = graph.scrutins.scrutin;
+
+            var index = 0;
+            for (var scrutin of scrutins) {
+
+                if (scrutin.dateScrutin.startsWith("2015")) {
+
+                    var personPour = {};
+                    var personContre = {};
+
+                    if (scrutin.ventilationVotes != null) {
+                        if (scrutin.ventilationVotes.organe != null) {
+
+                            var groupeArray = scrutin.ventilationVotes.organe.groupes.groupe;
+
+                            for (var i = 0; i < groupeArray.length; i++) {
+
+                                if (groupeArray[i].vote.decompteNominatif.contres != undefined) {
+                                    if (Array.isArray(groupeArray[i].vote.decompteNominatif.contres.votant)) {
+                                        for (var j = 0; j < groupeArray[i].vote.decompteNominatif.contres.votant.length; j++) {
+                                            var id1 = groupeArray[i].vote.decompteNominatif.contres.votant[j].acteurRef;
+
+                                            if (!personContre[id1]) {
+                                                personContre[id1] = id1;
+
+                                                if (!votantAjoute[id1]) {
+                                                    nodes.push({
+                                                        "id": id1,
+                                                        "group": groupeArray[i].organeRef
+                                                    });
+                                                    votantAjoute[id1] = id1;
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        var id2 = groupeArray[i].vote.decompteNominatif.contres.votant.acteurRef;
+
+                                        if (!personContre[id2]) {
+                                            personContre[id2] = id2;
+
+                                            if (!votantAjoute[id2]) {
+                                                nodes.push({
+                                                    "id": id2,
+                                                    "group": groupeArray[i].organeRef
+                                                });
+                                                votantAjoute[id2] = id2;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (groupeArray[i].vote.decompteNominatif.pours != undefined) {
+                                    if (Array.isArray(groupeArray[i].vote.decompteNominatif.pours.votant)) {
+                                        for (var j = 0; j < groupeArray[i].vote.decompteNominatif.pours.votant.length; j++) {
+                                            var id3 = groupeArray[i].vote.decompteNominatif.pours.votant[j].acteurRef;
+
+                                            if (!personPour[id3]) {
+                                                personPour[id3] = id3;
+
+                                                if (!votantAjoute[id3]) {
+                                                    nodes.push({
+                                                        "id": id3,
+                                                        "group": groupeArray[i].organeRef
+                                                    });
+                                                    votantAjoute[id3] = id3;
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        var id4 = groupeArray[i].vote.decompteNominatif.pours.votant.acteurRef;
+
+                                        if (!personPour[id4]) {
+                                            personPour[id4] = id4;
+
+                                            if (!votantAjoute[id4]) {
+                                                nodes.push({
+                                                    "id": id4,
+                                                    "group": groupeArray[i].organeRef
+                                                });
+                                                votantAjoute[id4] = id4;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // console.log("Nombre de votants Pour : " + Object.keys(personPour).length);
+                    var size = Object.keys(personPour).length;
+
+                    for (var i = 0, keys_i = Object.keys(personPour), ii = keys_i.length; i < ii; i++) {
+
+                        for (var j = i + 1, keys_j = Object.keys(personPour), jj = keys_j.length; j < jj; j++) {
+
+                            var couple = personPour[keys_i[i]] + personPour[keys_j[j]];
+
+                            // console.log(JSON.stringify(links));
+
+                            if (!(couple in lienAjoute)) {
+
+                                lienAjoute[couple] = couple;
+
+                                links[couple] = {};
+                                links[couple].source = personPour[keys_i[i]];
+                                links[couple].target = personPour[keys_j[j]];
+                                links[couple].value = 1;
+
+                            } else
+                                links[couple].value += 1;
+                        }
+                    }
+
+                    // console.log("Nombre de votants Contre : " + Object.keys(personContre).length);
+                    for (var i = 0, keys_i = Object.keys(personContre), ii = keys_i.length; i < ii; i++) {
+
+                        for (var j = i + 1, keys_j = Object.keys(personContre), jj = keys_j.length; j < jj; j++) {
+
+                            var couple = personContre[keys_i[i]] + personContre[keys_j[j]];
+
+                            // console.log(JSON.stringify(links)str);
+
+                            if (!(couple in lienAjoute)) {
+
+                                lienAjoute[couple] = couple;
+
+                                links[couple] = {};
+                                links[couple].source = personContre[keys_i[i]];
+                                links[couple].target = personContre[keys_j[j]];
+                                links[couple].value = 1;
+
+                            } else
+                                links[couple].value += 1;
+                        }
+                    }
+
+                    index++;
+                }
+            }
+
+
+            console.log("Nombre de scrutins : " + index);
+
+            // console.log(JSON.stringify(links));
+
+            var resultLinks = [];
+
+            for (var key in links) {
+
+                // Réduction du nombre de noeuds : valeur de référence = nbLinkMin
+                if (links[key].value >= nbLinkMin) {
+                    resultLinks.push({
+                        "source": links[key].source,
+                        "target": links[key].target,
+                        "value": links[key].value
+                    });
+                }
+            }
+
+            // console.log(JSON.stringify(resultLinks));
+            //console.log(JSON.stringify(nodes));
+            //console.log(Object.keys(nodes).length);
+
+            var linksReduced = [];
+
+            console.log("Nombre de nodes : " + nodes.length);
+            console.log("Nombre de liens avant réduction : " + Object.keys(links).length);
+            console.log("Nombre de liens après réduction : " + resultLinks.length);
+
+            // console.log(JSON.stringify(linksReduced));
+
+            var link = svg.append("g")
+                .attr("class", "links")
+                .selectAll("line")
+                .data(resultLinks)
+                .enter().append("line")
+                .attr("stroke-width", function(d) {
+                    return d / 5;
+                });
+
+            var node = svg.append("g")
+                .attr("class", "nodes")
+                .selectAll("circle")
+                .data(nodes)
+                .enter().append("circle")
+                .attr("r", 5)
+                .attr("id", function(d) {
+                    return d.id;
+                })
+                .attr("fill", function(d) {
+                    return color(d.group);
+                })
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+
+            node.append("title")
+                .text(function(d) {
+                    return "Nom : " + noms_acteur[d.id] + "\nParti : " + noms_parti[d.group];
+                });
+
+            simulation
+                .nodes(nodes)
+                .on("tick", ticked);
+
+            simulation.force("link")
+                .links(resultLinks);
+
+
+            function ticked() {
+
+                link
+                    .attr("x1", function(d) {
+                        return d.source.x;
+                    })
+                    .attr("y1", function(d) {
+                        return d.source.y;
+                    })
+                    .attr("x2", function(d) {
+                        return d.target.x;
+                    })
+                    .attr("y2", function(d) {
+                        return d.target.y;
+                    });
+
+                node
+                    .attr("cx", function(d) {
+                        return d.x;
+                    })
+                    .attr("cy", function(d) {
+                        return d.y;
+                    });
+            }
+
+        });
+
+        function dragstarted(d) {
+            if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(d) {
+            d.fx = d3.event.x;
+            d.fy = d3.event.y;
+        }
+
+        function dragended(d) {
+            if (!d3.event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+    </script>
+</body>
